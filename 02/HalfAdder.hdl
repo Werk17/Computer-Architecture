@@ -17,5 +17,4 @@ CHIP HalfAdder {
     And(a=a, b=b, out=carry);
     // A = 1 or B = 1, but not both
     Xor(a=a, b=b, out=sum);
-
 }

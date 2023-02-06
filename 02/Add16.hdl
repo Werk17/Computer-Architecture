@@ -13,7 +13,6 @@ CHIP Add16 {
     OUT out[16];
 
     PARTS:
-   // Most significant carry bit ignored here
    FullAdder(a=false, b=a[0], c=b[0], sum=out[0], carry=cout0);
    FullAdder(a=cout0, b=a[1], c=b[1], sum=out[1], carry=cout1);
    FullAdder(a=cout1, b=a[2], c=b[2], sum=out[2], carry=cout2);
