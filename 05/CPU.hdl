@@ -39,5 +39,55 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    // determine the MSB is C instruction or A instruction respectively
+    Or(a=instruction[15], b=false, out=cInstruction);
+    Not(in=instruction[15], out=aInstruction);
+
+    // When C instruction and a-bit = 1, write to A register
+    And(a=cInstruction, b=instruction[5], out=cWriteA);
+    // Write to A register
+    Or(a=aInstruction, b=cWriteA, out=loadAReg);
+    Mux16(a=instruction, b=outALU, sel=cWriteA, out=aRegInput);
+    ARegister(in=aRegInput, load=loadAReg, out=aRegOutput, out[0..14]=addressM);
+
+    And(a=cInstruction, b=instruction[4], out=loadDReg);
+    DRegister(in=outALU, load=loadDReg, out=dRegOutput);
+
+    // Store the output in the A-register or RAM[A] (M)
+    Mux16(a=aRegOutput, b=inM, sel=instruction[12], out=outAregOrM);
+
+    ALU(
+        x=dRegOutput, 
+        y=outAregOrM, 
+        zx=instruction[11], // c1
+        nx=instruction[10], // .
+        zy=instruction[9], // .
+        ny=instruction[8], //.
+        f=instruction[7], //.
+        no=instruction[6], // c6
+        out=outALU, 
+        out=outM,
+        zr=outZero, 
+        ng=outNegate
+        );
+
+    // Use program counter to fetch, execute, or reset
+    Not(in=outNegate, out=nonNegative);
+    Not(in=outZero, out=nonZero);
+    // check positive output
+    And(a=nonZero, b=nonNegative, out=positive);
+    // write to M
+    And(a=cInstruction, b=instruction[3], out=writeM);
+    // destination bit logic
+    And(a=positive, b=instruction[0], out=JGT);
+    And(a=outZero, b=instruction[1], out=JEQ);
+    And(a=outNegate, b=instruction[2], out=JLT);
+    // if dest, then jump
+    Or(a=JEQ, b=JLT, out=JLE);
+    Or(a=JLE, b=JGT, out=jumpA);   
+    // determines if we load program counter or not c-instruction and a-bit are 1
+    And(a=cInstruction, b=jumpA, out=loadPC);
+    Not(in=loadPC, out=incrementPC);
+    PC(in=aRegOutput, load=loadPC, inc=incrementPC, reset=reset, out[0..14]=pc);
+
 }
