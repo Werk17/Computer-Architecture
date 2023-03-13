@@ -122,15 +122,15 @@ class Hasm(object):
 
     def jump2bin(mnemonic):
         # returns the binary code for the jump part of a C-instruction
-        return Jump[mnemonic]
+        return Jump.get(mnemonic)
 
     def commandType(command):
         # returns "A_COMMAND", "C_COMMAND", or "L_COMMAND"
         # depending on the contents of the 'command' string
-        if command.startswith('('):
-            return "L_COMMAND"
-        elif command.startswith('@'):
+        if command.startswith('@'):
             return "A_COMMAND"
+        elif command.startswith('('):
+            return "L_COMMAND"
         else:
             return "C_COMMAND"
 
@@ -161,3 +161,4 @@ class Hasm(object):
 
 if __name__ == "__main__":
     assembler = Hasm(sys.argv[1])
+    
