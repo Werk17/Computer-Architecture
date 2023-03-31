@@ -80,17 +80,29 @@ Jump = {
     "JMP": "111"
 }
 
+command_type = {
+    '@':'A_COMMAND',
+    '(':'L_COMMAND',
+    'D':'C_COMMAND',
+    'A':'C_COMMAND',
+    'M':'C_COMMAND',
+    '0':'C_COMMAND',
+    '1':'C_COMMAND',
+    '-1':'C_COMMAND',
+    "!":"C_COMMAND",
+    "-":"C_COMMAND"
+    }
+
 
 class Hasm(object):
     lines = []
-
     def __init__(self, filename):
         with open(filename, "r") as f:
             Hasm.pass1(f.readlines())
             Hasm.pass2(f.readlines())
 
     def pass1(self, line) -> str:
-        Hasm.strip_whitespace(lines)
+        # Hasm.strip_whitespace(lines)
         pass
 
     def pass2(self, lines) -> str:
@@ -100,17 +112,17 @@ class Hasm(object):
         binary = '{0:016b}'.format(val)
         pass
 
-    def strip_whitespace(lines):
-        instructions = []
-        for line in lines:
-            stripped_line = line.strip() 
-            if stripped_line:
-                if not stripped_line.startswith("//"):
-                    if "//" in stripped_line:
-                        instructions.append(stripped_line.split("//")[0].strip())
-                    else:
-                        instructions.append(stripped_line)
-        return instructions
+    # def strip_whitespace(lines):
+    #     instructions = []
+    #     for line in lines:
+    #         stripped_line = line.strip() 
+    #         if stripped_line:
+    #             if not stripped_line.startswith("//"):
+    #                 if "//" in stripped_line:
+    #                     instructions.append(stripped_line.split("//")[0].strip())
+    #                 else:
+    #                     instructions.append(stripped_line)
+    #     return instructions
 
     def dest2bin(mnemonic):
         # returns the binary code for the destination part of a C-instruction
@@ -134,29 +146,44 @@ class Hasm(object):
         else:
             return "C_COMMAND"
 
+    
+
     def getSymbol(command):
         # given an A_COMMAND or L_COMMAND type, returns the symbol as a string,
         # eg (XXX) returns 'XXX'
         # @sum returns 'sum'
-        if Hasm.commandType(command) == "A_COMMAND":
+        if command.startswith("@"): # A_COMMAND
             return command[1:]
-        elif Hasm.commandType(command) == "L_COMMAND":
-            return command[1:-2]
+        elif command.startswith("(") and command.endswith(")"):
+            return command[1:-1]
         else:
-            return command
-
+            return 'Invalid command type'
+    
+    
     def getDest(command):
         # return the dest mnemonic in the C-instruction 'commmand'
-
-        return Dest[Hasm.dest2bin(command)]
+        ep = command.find("=")
+        if ep == -1:
+            return "null"
+        return command[0:ep]
 
     def getComp(command):
         # return the comp mnemonic in the C-instruction 'commmand'
-        return Comp[Hasm.comp2bin(command)]
+        if commandType(command) == "C_COMMAND":
+            cmd = command
+            if "=" in cmd:
+                cmd = cmd.partition("=")[2]
+            return cmd.partition(";")[0]
+        return "" #This is an error condition
 
     def getJump(command):
         # return the jump mnemonic in the C-instruction 'commmand'
-        return Jump[Hasm.jump2bin(command)]
+        if ';' in command:
+            return command.split(';')[1]
+        else:
+            return 'null'
+
+    
 
 
 if __name__ == "__main__":
