@@ -167,9 +167,9 @@ class Hasm(object):
             return "null"
         return command[0:ep]
 
-    def getComp(command):
+    def getComp(self, command):
         # return the comp mnemonic in the C-instruction 'commmand'
-        if commandType(command) == "C_COMMAND":
+        if self.commandType(command) == "C_COMMAND":
             cmd = command
             if "=" in cmd:
                 cmd = cmd.partition("=")[2]
