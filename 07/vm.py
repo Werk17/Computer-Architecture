@@ -168,24 +168,6 @@ def arithTest(type):
 
     # return(getPopD() + ARITH_BINARY["sub"] + "\n@T" + str(c) + \n)
 
-# def parsFile(, f):  # f = filehandle
-#     file = open(f, 'r')
-#     for line in file:
-#         tokens = line.split()
-#         # break line into tokens
-#         # push static 2
-#         # token[0] = 'push', [1] = 'static', [2] = '2'
-#         op = tokens[0]
-#         seg = tokens[1]
-#         index = tokens[2]
-
-#         # if token[0] in dictionary: ONE OF DICTS
-#         # do things
-#         if op in .ARITH_BINARY.keys():
-#             pass
-#         pass
-#     # Terminate with infinite loop
-#     pass
 
 def parsFile( f):
     outString = ""
@@ -251,8 +233,41 @@ def getLabel(label):
     return "(" + label + ")"
 
 def ifGoto( label):
-    getPopD() 
+    return getPopD() + "@{} D;JNE".format(label)
+
+def _getPushMem(src):
+    # INPUT: src - a text string that is a symbol corresponding to a RAM address containing an address
+    # OUTPUT: a text string that will result in the address in src being pushed 
+    # to the top of the stack. 
     pass
+
+def _getPushLabel(src):
+    # INPUT: src - a text string that is some label, eg '(MAIN_LOOP)' which 
+    # corresponds to a ROM address in the symbol table.
+    # OUTPUT: a text string that will result in the ROM address 
+    # to the top of the stack.
+    pass
+
+def _getPopMem(dest):
+    # INPUT: src - a text string that is a symbol that corresponding to a RAM address containing an address
+    # OUTPUT: a text string that pops the stack and places that value into the dest segment pointer
+    pass
+
+def _getMoveMem(src,dest):
+    # INPUT: src - a text string that is a symbol corresponding to a RAM address containing an address
+    # INPUT: dest- a text string that is a symbol corresponding to a RAM address containing an address
+    # OUPUT: a text string that copies the address in src to dest
+    pass
+
+# call funcName nArgs 
+# save return address, add to stack
+# first, uniqueLabel, then save address of that label to stack
+# saved LCL, ARG, THIS, THAT segment pointers
+# reposition ARG (for callee)
+# reposititon LCL (for callee)
+# ARG = SP - 5 - 
+
+    
 
 
 if __name__ == "__main__":
@@ -262,4 +277,3 @@ if __name__ == "__main__":
     f = open(filename)
     print(parsFile(f))
     f.close()
-    # hvm.parsFile(filename)
