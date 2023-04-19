@@ -2,9 +2,6 @@ import os
 import re
 import sys
 
-
-# class VM:
-
 ARITH_BINARY = {
     'add': 'M=D+M',
     'sub': 'M=M-D',
@@ -41,17 +38,16 @@ SEGLABEL = {
 
 LABEL_NUMBER = 0
 
-# def __init__(, filename):
-#     .filename = filename
-#     .parsFile(filename)
 
 def getPushD():
-    D = "@SP, AM=M+1, A=A-1, M=D"
+    D = "@SP, AM=M+1, A=A-1, M=D,"
     return D
+
 
 def getPopD():
     D = "@SP, AM=M-1, D=M,"
     return D
+
 
 def pointerSeg(push, seg, index):
     # The following puts the segment's pointer + index in the D
@@ -75,7 +71,8 @@ def pointerSeg(push, seg, index):
     else:
         print("Invalid Pointer Segment.")
 
-def constantSeg( push, seg, index):
+
+def constantSeg(push, seg, index):
     # This function returns a sequence of machine language
     # instructions that places a constant value onto the
     # top of the stack. Note pop is undefined for this
@@ -101,6 +98,7 @@ def constantSeg( push, seg, index):
             return "@" + str(filename) + "." + str(index) + "\nD=M\n" + getPushD()
         elif push == "pop":
             return getPopD() + "@" + str(filename) + "." + str(index) + "\nM=D\n"
+
 
 def fixedSeg(push, seg, index):
     # The following puts the segment's value + index in the D
@@ -131,6 +129,7 @@ def fixedSeg(push, seg, index):
     else:
         print("Not a fixed segment")
 
+
 SEGMENTS = {
     "constant": constantSeg,
     "static": constantSeg,
@@ -143,33 +142,21 @@ SEGMENTS = {
 
 }
 
+
 def line2Command(l):
     # This function just strips commands that follow comments.
     return l[: l.find("//")].strip()
 
+
 def uniqueLabel():
     # Returns a unique label.
     # Access global variable defined at the top of file, increment and return a unique label: UL_LABEL_NUMBER where label number is an integer.
-    global LABEL_NUMBER 
+    global LABEL_NUMBER
     LABEL_NUMBER += 1
     return "UL_" + str(LABEL_NUMBER)
 
-def arithTest(type):
-    global c
-    c += 1
-    if type == "eq":
-        return "D;JEQ"
-    elif type == "lt":
-        return "D;JLT"
-    elif type == "gt":
-        return "D;JGT"
-    else:
-        return "{} is in not a valid type".format(type)
 
-    # return(getPopD() + ARITH_BINARY["sub"] + "\n@T" + str(c) + \n)
-
-
-def parsFile( f):
+def parsFile(f):
     outString = ""
     for line in f:
         command = line2Command(line)  # strip any comments
@@ -212,7 +199,7 @@ def parsFile( f):
                 # Study this line closely.
                 # Actual function is stored as value for specified key rather than a function call. This allows clients to pass arguments to the value of a dict.
                 outString += SEGMENTS[args[1]
-                                            ](args[0], args[1], args[2])
+                                      ](args[0], args[1], args[2])
             # Account for invalid vm code and stop the program upon encountering. Any line that reaches this else statement is NOT valid vm code.
             else:
                 print("Unknown command!")
@@ -226,54 +213,124 @@ def parsFile( f):
     # replace commas with newlines before returning
     return outString.replace(" ", "").replace(",", "\n")
 
+
 def getGoto(label):
-    return "@{} 0;JMP".format(label)
+    return "@{}\n 0;JMP\n".format(label)
+
 
 def getLabel(label):
     return "(" + label + ")"
 
-def ifGoto( label):
-    return getPopD() + "@{} D;JNE".format(label)
+
+def getIf_goto(label):
+    return getPopD() + "@{}, D;JNE,".format(label)
+
 
 def _getPushMem(src):
     # INPUT: src - a text string that is a symbol corresponding to a RAM address containing an address
-    # OUTPUT: a text string that will result in the address in src being pushed 
-    # to the top of the stack. 
-    pass
+    # OUTPUT: a text string that will result in the address in src being pushed
+    # to the top of the stack.
+
+    return "@{}\n D=M \n{}" % (src, getPushD())
+
 
 def _getPushLabel(src):
-    # INPUT: src - a text string that is some label, eg '(MAIN_LOOP)' which 
+    # INPUT: src - a text string that is some label, eg '(MAIN_LOOP)' which
     # corresponds to a ROM address in the symbol table.
-    # OUTPUT: a text string that will result in the ROM address 
+    # OUTPUT: a text string that will result in the ROM address
     # to the top of the stack.
-    pass
+    return "@{}\n D=A\n {}\n" % (src, getPushD())
+
 
 def _getPopMem(dest):
     # INPUT: src - a text string that is a symbol that corresponding to a RAM address containing an address
     # OUTPUT: a text string that pops the stack and places that value into the dest segment pointer
-    pass
+    return getPopD() + "@{}\n M=D\n" % (dest)
 
-def _getMoveMem(src,dest):
+
+def _getMoveMem(src, dest):
     # INPUT: src - a text string that is a symbol corresponding to a RAM address containing an address
     # INPUT: dest- a text string that is a symbol corresponding to a RAM address containing an address
     # OUPUT: a text string that copies the address in src to dest
-    pass
+    return "@{}\n D=M\n @{}\n M=D\n" % (src, dest)
 
-# call funcName nArgs 
-# save return address, add to stack
-# first, uniqueLabel, then save address of that label to stack
-# saved LCL, ARG, THIS, THAT segment pointers
-# reposition ARG (for callee)
-# reposititon LCL (for callee)
-# ARG = SP - 5 - 
 
-    
+def getCall(funcName, nArgs):
+    content = ""
+    returnAddress = uniqueLabel(funcName)
+    content += _getPushLabel(returnAddress)
+
+    content += _getPushLabel(returnAddress)
+    content += _getPushMem("LCL")
+    content += _getPushMem("ARG")
+    content += _getPushMem("THIS")
+    content += _getPushMem("THAT")
+    content += _getMoveMem("SP", "LCL")
+    # save caller segment pointers, LCL, ARG, THIS, THAT
+    # getPushMem()
+    # _getMoveMem
+    setArg = f"{nArgs + 5}, D=A, @SP, D=M-D, @ARG, M=D,"
+    content += setArg
+    content += getGoto(funcName)
+    content += getLabel(returnAddress)
+    return content
+
+
+def getFunction(funcName, nLocals):
+    # Ouput entry point '(funcName)'
+    getLabel(funcName)
+    # make n local variables equal to zero
+    code = "D=0, "
+    for i in int(nLocals):
+        code += f"{getPushD()}"
+    return code
+
+
+def getReturn():
+    # get address at the frames end, local at R15
+    content = ""
+    content += "@LCL, D=M, @5, A=D-A, D-M"
+    content += "@R15, M=D,"
+    content += getPopD() + "@ARG, A=M, M=D"
+    content += "@ARG, D=M, @R14, M=D+1,"
+    content += _getMoveMem("LCL", "SP")
+
+    # popMem for this, that, arg, lcl
+    content += _getPopMem("THAT")
+    content += _getPopMem("THIS")
+    content += _getPopMem("ARG")
+    content += _getPopMem("LCL")
+
+    _getMoveMem("@R14", "SP")
+
+    return content
+
+
+def getInit(sysinit=True):
+    """
+    Write the VM initialization code:
+        Set the SP to 256.
+        Initialize system pointers to -1.
+        Call Sys.Init()
+        Halt loop
+    Passing sysinit = False oly sets the SP.  This allows the simpler
+    VM test scripts to run correctly.
+    """
+    os = ""
+    os += '@256,D=A,@SP,M=D,'
+    if sysinit:
+        # initialize ARG, LCL, THIS, THAT
+        os += 'A=A+1,M=-1,A=A+1,M=-1,A=A+1,M=-1,A=A+1,M=-1,'
+        os += getCall('Sys.init', 0)  # release control to init
+        halt = uniqueLabel()
+        os += '@%s, (%s), 0;JMP,' % (halt, halt)
+    return os
 
 
 if __name__ == "__main__":
     filename = sys.argv[1].strip()
     # ASM_File = filename.replace(".vm", ".asm")
-    
+
     f = open(filename)
     print(parsFile(f))
     f.close()
