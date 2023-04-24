@@ -54,6 +54,8 @@ class Tokenizer:
                     self.tokens.append(token)
 
             # tokens is now a list of all the individual tokens we want to read
+        self.token_index = 0
+        return self.tokens
 
     def removeComments(self, f):
         file = open(f, 'r')
@@ -81,9 +83,9 @@ class Tokenizer:
             if self.curr_token in symbols:
                 self.token_type = "symbol"
             elif self.curr_token.isdigit():
-                self.token_type = "int_const"
+                self.token_type = "integerConstant"
             elif self.curr_token[0] == '"' and self.curr_token[-1] == '"':
-                self.token_type = "string_const"
+                self.token_type = "stringConstant"
             elif self.curr_token in keywords:
                 self.token_type = "keyword"
             else:
@@ -100,11 +102,11 @@ class Tokenizer:
 
     def getToken(self):
         return self.curr_token
+    def getNextToken(self):
+        return self.tokens[self.token_index + 1]
 
 
-infile = sys.argv[1]
-xmlFile = infile.replace(".jack", "T.xml")
-tokenizer = Tokenizer(infile)
+
 # commentsRemoved = removeComments(infile)
 # outFile.close()
 
