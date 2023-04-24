@@ -3,8 +3,8 @@ from Tokenizer import Tokenizer
 
 
 class CompileEngine:
-    def __init__(self, T):
-        self.T = Tokenizer
+    def __init__(self, T = Tokenizer):
+        self.T = T
         self.currentToken = ""
         self.currentTokenType = ""
         # self.output = ""
@@ -56,7 +56,7 @@ class CompileEngine:
         if expected_types is not tuple:
             expected_types = (expected_types)
         if self.currentTokenType in expected_types:
-            self.process(self.T.getToken())
+            self.process(self.currentToken)
         else:
             print(
                 f"Error: expected types {expected_types} but got {self.currentTokenType}")
