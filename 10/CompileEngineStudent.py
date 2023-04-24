@@ -36,12 +36,12 @@ class CompileEngine:
         """
         self.currentToken = self.T.getToken()
         if type(tokens) is not tuple:
-            tokens = (tokens)
+            tokens = (tokens,)
         if(self.T.getToken()) in tokens:
             self.process(self.T.getToken)
         else:
             print(f"Error: unexpected token {self.currentToken}")
-            exit()
+            sys.exit()
 
     def checkType(self, expected_types):
         """
@@ -54,13 +54,13 @@ class CompileEngine:
         """
 
         if expected_types is not tuple:
-            expected_types = (expected_types)
+            expected_types = (expected_types,)
         if self.currentTokenType in expected_types:
             self.process(self.currentToken)
         else:
             print(
                 f"Error: expected types {expected_types} but got {self.currentTokenType}")
-            exit()
+            sys.exit()
 
     # The following are the compile functions that need to
     # be implemented. compileExpression has been withheld for a
@@ -80,11 +80,11 @@ class CompileEngine:
         """
         print("<class>")
         self.checkToken(("class",))
-        self.checkType(("IDENTIFIER",))
+        self.checkType(("identifier",))  # lowercase this
         self.checkToken("{")
-        while self.T.getToken() in ["static", "field"]:
+        while self.T.getToken() in ("static", "field"):
             self.compileClassVarDec()
-        while self.T.getToken() in ["constructor", "function", "method"]:
+        while self.T.getToken() in ("constructor", "function", "method"):
             self.compileSubroutine()
         self.checkToken("}")
         print("</class>")
@@ -217,6 +217,8 @@ class CompileEngine:
             '{' <statements> '}' )?
         """
         print("<ifStatement>")
+        self.checkToken("if")
+        self.checkToken('(')
         print("</ifStatement>")
 
     def compileWhile(self):

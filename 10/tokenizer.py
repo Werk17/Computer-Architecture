@@ -55,7 +55,6 @@ class Tokenizer:
 
             # tokens is now a list of all the individual tokens we want to read
 
-
     def removeComments(self, f):
         file = open(f, 'r')
         jack_code = file.read()
@@ -80,28 +79,27 @@ class Tokenizer:
             self.token_index += 1
             self.curr_token = self.tokens[self.token_index]
             if self.curr_token in symbols:
-                self.token_type = "SYMBOL"
+                self.token_type = "symbol"
             elif self.curr_token.isdigit():
-                self.token_type = "INT_CONST"
+                self.token_type = "int_const"
             elif self.curr_token[0] == '"' and self.curr_token[-1] == '"':
-                self.token_type = "STRING_CONST"
+                self.token_type = "string_const"
             elif self.curr_token in keywords:
-                self.token_type = "KEYWORD"
+                self.token_type = "keyword"
             else:
-                self.token_type = "IDENTIFIER"
+                self.token_type = "identifier"
         else:
             self.curr_token = ""
             self.token_type = ""
 
     def keyWords(self):
         return self.keywords
-    
+
     def getType(self):
         return self.token_type
 
     def getToken(self):
         return self.curr_token
-    
 
 
 infile = sys.argv[1]
@@ -111,44 +109,44 @@ tokenizer = Tokenizer(infile)
 # outFile.close()
 
 # code before compile engine came
-        # xml_code = '<tokens>\n'
-        # use while loop for has more tokens
-        # while(not self.hasMoreTokens()):
-        #     # advance to next token and do stuff
-        #     self.advance()
+# xml_code = '<tokens>\n'
+# use while loop for has more tokens
+# while(not self.hasMoreTokens()):
+#     # advance to next token and do stuff
+#     self.advance()
 
-        # for token in self.tokens:
-        #     self.curr_token = token
+# for token in self.tokens:
+#     self.curr_token = token
 
-        #     if token in keywords:
-        #         xml_code += '<keyword> ' + str(token) + ' </keyword>\n'
-        #         self.token_type = self.getType()
+#     if token in keywords:
+#         xml_code += '<keyword> ' + str(token) + ' </keyword>\n'
+#         self.token_type = self.getType()
 
-        #     elif token in symbols:
-        #         self.token_type = self.getType()
-        #         if token == '>':
-        #             xml_code += '<symbol> ' + '&gt;' + ' </symbol>\n'
-        #         elif token == '<':
-        #             xml_code += '<symbol> ' + '&lt;' + ' </symbol>\n'
-        #         elif token == '&':
-        #             xml_code += '<symbol> ' + '&amp;' + ' </symbol>\n'
-        #         else:
-        #             xml_code += '<symbol> ' + str(token) + ' </symbol>\n'
+#     elif token in symbols:
+#         self.token_type = self.getType()
+#         if token == '>':
+#             xml_code += '<symbol> ' + '&gt;' + ' </symbol>\n'
+#         elif token == '<':
+#             xml_code += '<symbol> ' + '&lt;' + ' </symbol>\n'
+#         elif token == '&':
+#             xml_code += '<symbol> ' + '&amp;' + ' </symbol>\n'
+#         else:
+#             xml_code += '<symbol> ' + str(token) + ' </symbol>\n'
 
-        #     elif '"' in token:
-        #         token = token.replace('"', '')
-        #         self.token_type = self.getType()
-        #         xml_code += '<stringConstant> ' + \
-        #             str(token) + ' </stringConstant>\n'
+#     elif '"' in token:
+#         token = token.replace('"', '')
+#         self.token_type = self.getType()
+#         xml_code += '<stringConstant> ' + \
+#             str(token) + ' </stringConstant>\n'
 
-        #     elif token.isnumeric():
-        #         self.token_type = self.getType()
-        #         xml_code += '<integerConstant> ' + \
-        #             str(token) + ' </integerConstant>\n'
+#     elif token.isnumeric():
+#         self.token_type = self.getType()
+#         xml_code += '<integerConstant> ' + \
+#             str(token) + ' </integerConstant>\n'
 
-        #     else:
-        #         self.token_type = self.getToken()
-        #         xml_code += '<identifier> ' + str(token) + ' </identifier>\n'
-        # # end of file for xml codeF
-        # xml_code += '</tokens>\n'
-        # return xml_code
+#     else:
+#         self.token_type = self.getToken()
+#         xml_code += '<identifier> ' + str(token) + ' </identifier>\n'
+# # end of file for xml codeF
+# xml_code += '</tokens>\n'
+# return xml_code
