@@ -3,15 +3,18 @@ from Tokenizer import Tokenizer
 
 
 class CompileEngine:
-    def __init__(self, T=Tokenizer):
-        self.infile = sys.argv[1]
+    def __init__(self, infile):
+        self.infile = infile
         self.xmlFile = self.infile.replace(".jack", "T.xml")
-        self.T = T(self.infile)
+        self.T = Tokenizer(infile)
         self.currentToken = self.T.getToken()
         self.currentTokenType = self.T.getType()
-        self.operators = '+-*/&|<>+'
+        self.operators = '+-*/&|<>='
         self.unaryOp = '-~'
-        self.tokenIndex = 0
+
+        self.outfile = open(self.xmlFile, 'w')
+        # self.tokenIndex = 0
+        # self.compile()
 
     # The following are suggested helper functions.
     # You need not use them if you have other ideas
@@ -21,15 +24,15 @@ class CompileEngine:
         if self.currentToken == str:
             self.printXMLToken()
             self.T.advance()
-            self.tokenIndex += 1
+            # self.tokenIndex += 1
         else:
-            print("Syntax error")
+            self.outfile.write("Syntax error\n")
             self.T.advance()
 
     def printXMLToken(self):
         token = self.currentToken
         type = self.currentTokenType
-        print(f"<{type}> {token} </{type}>")
+        self.outfile.write(f"<{type}> {token} </{type}>\n")
 
     def checkToken(self, tokens):
         """
@@ -45,10 +48,10 @@ class CompileEngine:
 
         if type(tokens) is not tuple:
             tokens = (tokens,)
-        if(self.currentToken) in tokens:
+        if self.currentToken in tokens:
             self.process(self.currentToken)
         else:
-            print(f"Error: unexpected token {self.currentToken}")
+            self.outfile.write(f"Error: unexpected token {self.currentToken}")
             sys.exit()
 
     def checkType(self, expected_types):
@@ -69,7 +72,7 @@ class CompileEngine:
         if self.currentTokenType in expected_types:
             self.process(self.currentToken)
         else:
-            print(
+            self.outfile.write(
                 f"Error: expected types {expected_types} but got {self.currentTokenType}")
             sys.exit()
 
@@ -79,6 +82,8 @@ class CompileEngine:
 
     def compile(self):
         self.T.advance()
+        self.compileClass()
+        self.outfile.close()
 
     def compileClass(self):
         """
@@ -88,29 +93,29 @@ class CompileEngine:
         The tokenizer is expected to be positionsed at the beginning of the
         file.
         """
-        print("<class>")
-        self.checkToken(("class",))
-        self.checkType(("identifier",))
+        self.outfile.write("<class>\n")
+        self.checkToken(("class"))
+        self.checkType(("identifier"))
         self.checkToken("{")
-        while self.currentToken in ["static", "field"]:
+        while self.currentToken in ("static", "field"):
             self.compileClassVarDec()
-        while self.currentToken in ["constructor", "function", "method"]:
+        while self.currentToken in ("constructor", "function", "method"):
             self.compileSubroutine()
         self.checkToken("}")
-        print("</class>")
+        self.outfile.write("</class>\n")
 
     def compileClassVarDec(self):
         """
         Compiles <class-var-dec> :=
             ('static' | 'field') <type> <var-name> (',' <var-name>)* ';'
         """
-        print("<classVarDec>")
+        self.outfile.write("<classVarDec>\n")
         self.checkToken(("static", "field"))
         self.checkType((self.currentTokenType))
         self.checkToken(self.currentToken)
         while self.currentToken == ",":
             self.checkToken((";",))
-        print("</classVarDec>")
+        self.outfile.write("</classVarDec>\n")
 
     def compileSubroutine(self):
         """
@@ -121,18 +126,18 @@ class CompileEngine:
         ENTRY: Tokenizer positioned on the initial keyword.
         EXIT:  Tokenizer positioned after <subroutine-body>.
         """
-        print("<subroutineDec>")
+        self.outfile.write("<subroutineDec>\n")
         self.checkToken(("constructor", "function", "method"))
         if self.currentToken == "void":
             self.checkToken(("void",))
         else:
             self.checkType((self.currentTokenType))
         self.checkToken(self.currentToken)  # compile subroutine name
-        self.checkToken(("(",))
+        self.checkToken(("("))
         self.compileParameterList()
-        self.checkToken((")",))
+        self.checkToken((")"))
         self.compileSubroutineBody()
-        print("</subroutineDec>")
+        self.outfile.write("</subroutineDec>\n")
 
     def compileParameterList(self):
         """
@@ -142,7 +147,7 @@ class CompileEngine:
         ENTRY: Tokenizer positioned on the initial keyword.
         EXIT:  Tokenizer positioned after <subroutine-body>.
         """
-        print("<parameterList>")
+        self.outfile.write("<parameterList>\n")
         if self.currentToken != ")":
             self.checkType((self.currentTokenType))
             self.checkToken((self.currentToken))
@@ -150,27 +155,27 @@ class CompileEngine:
                 self.checkToken((","))
                 self.checkType(self.currentTokenType)
                 self.checkToken(self.currentToken)
-        print("</parameterList>")
+        self.outfile.write("</parameterList>\n")
 
     def compileSubroutineBody(self):
         """
         Compiles <subroutine-body> :=
             '{' <var-dec>* <statements> '}'
         """
-        print("<subroutineBody>")
+        self.outfile.write("<subroutineBody>\n")
         self.process('{')
         while self.currentToken in ('var'):
             self.compileVarDec()
         self.compileStatements()
         self.process('}')
-        print("</subroutineBody>")
+        self.outfile.write("</subroutineBody>\n")
 
     def compileVarDec(self):
         """
         Compiles <var-dec> :=
             'var' <type> <var-name> (',' <var-name>)* ';'
         """
-        print("<varDec>")
+        self.outfile.write("<varDec>\n")
         self.checkToken(("var"))
         self.checkType((self.currentTokenType))
         self.checkToken((self.currentToken))
@@ -178,14 +183,14 @@ class CompileEngine:
             self.checkToken((","))
             self.checkToken(self.currentToken)
         self.checkToken((";"))
-        print("</varDec>")
+        self.outfile.write("</varDec>\n")
 
     def compileStatements(self):
         """
         Compiles <statements> := (<let-statement> | <if-statement> |
             <while-statement> | <do-statement> | <return-statement>)*
         """
-        print("<statements>")
+        self.outfile.write("<statements>\n")
         while self.currentToken in ('let', 'if', 'while', 'do', 'return'):
             if self.currentToken == 'let':
                 self.compileLet()
@@ -197,14 +202,14 @@ class CompileEngine:
                 self.compileDo()
             if self.currentToken == 'return':
                 self.compileReturn()
-        print("</statements>")
+        self.outfile.write("</statements>\n")
 
     def compileLet(self):
         """
         Compiles <let-statement> :=
             'let' <var-name> ('[' <expression> ']')? '=' <expression> ';'
         """
-        print("<letStatement>")
+        self.outfile.write("<letStatement>\n")
         self.checkToken('let')
         self.process(self.currentToken)
         if self.currentToken == '[':
@@ -214,7 +219,7 @@ class CompileEngine:
         self.process('=')
         self.compileExpression()
         self.process(';')
-        print("</letStatement>")
+        self.outfile.write("</letStatement>\n")
 
     def compileDo(self):
         """
@@ -226,11 +231,11 @@ class CompileEngine:
 
         <*-name> := <identifier>
         """
-        print("<doStatement>")
+        self.outfile.write("<doStatement>\n")
         self.checkToken('do')
         self.compileSubroutineCall()
         self.process(';')
-        print("</doStatment>")
+        self.outfile.write("</doStatment>\n")
 
     def compileIf(self):
         """
@@ -238,7 +243,7 @@ class CompileEngine:
             'if' '(' <expression> ')' '{' <statements> '}' ( 'else'
             '{' <statements> '}' )?
         """
-        print("<ifStatement>")
+        self.outfile.write("<ifStatement>\n")
         self.checkToken('if')
         self.process('(')
         self.compileExpression()
@@ -251,14 +256,14 @@ class CompileEngine:
             self.process('{')
             self.compileStatements()
             self.process('}')
-        print("</ifStatement>")
+        self.outfile.write("</ifStatement>\n")
 
     def compileWhile(self):
         """
         Compiles <while-statement> :=
         'while' '(' <expression> ')' '{' <statements> '}'
         """
-        print("<whileStatement>")
+        self.outfile.write("<whileStatement>\n")
         self.checkToken('while')
         self.process('(')
         self.compileExpression()
@@ -266,19 +271,19 @@ class CompileEngine:
         self.process('{')
         self.compileStatements()
         self.process('}')
-        print("</whileStatement>")
+        self.outfile.write("</whileStatement>\n")
 
     def compileReturn(self):
         """
         Compiles <return-statement> :=
             'return' <expression>? ';'
         """
-        print("<returnStatement>")
+        self.outfile.write("<returnStatement>\n")
         self.checkToken('return')
         if self.currentToken != ';':
             self.compileExpression()
         self.process(';')
-        print("</returnStatement>")
+        self.outfile.write("</returnStatement>\n")
 
 
 # The following are not LL(1) and are not part of the initial assignment
@@ -289,13 +294,13 @@ class CompileEngine:
         Compiles <expression> :=
             <term> (op <term>)*
         """
-        print("<expression>")
+        self.outfile.write("<expression>\n")
         self.compileTerm()
         # compile
         while self.currentToken in self.operators:
             self.process(self.currentToken)
             self.compileTerm()
-        print("</expression>")
+        self.outfile.write("</expression>\n")
 
     def compileExpressionList(self):
         """
@@ -303,13 +308,13 @@ class CompileEngine:
             (<expression> (',' <expression>)* )?
         """
 
-        print("<expressionList>")
+        self.outfile.write("<expressionList>\n")
         if self.currentToken != ')':
             self.compileExpression()
             while self.currentToken == ",":
                 self.process(self.currentToken)
                 self.compileExpression()
-        print("</expressionList>")
+        self.outfile.write("</expressionList>\n")
 
     def compileTerm(self):
         """
@@ -320,28 +325,30 @@ class CompileEngine:
         """
         # self.operators = '+-*/&|<>+'
         # self.unaryOp = '-~'
-        print("<term>")
-        if self.currentTokenType == 'integerConstant':
-            self.process(self.currentToken)
-        elif self.currentTokenType == 'stringConstant':
-            self.process(self.currentToken)
-        elif self.currentTokenType == 'keyword':
-            self.process(self.currentToken)
-        elif self.currentTokenType in ('identifier', 'class'):
-            if self.currentToken("(") or self.currentToken("."):
-                self.compileSubroutineCall()
-            elif self.currentToken == '[':
-                self.compileExpression()
-            else:
-                self.process(self.currentToken)
-        elif self.currentToken == '(':
-            self.compileExpression()
-        elif self.currentToken in self.unaryOp:
-            self.process(self.currentToken)
-            self.compileTerm()
-        else:
-            print(f"Unexpected token: {self.currentToken} in file")
-        print("</term>")
+        self.outfile.write("<term>\n")
+        self.process(self.currentToken)
+        # ll2 stuff
+        # if self.currentTokenType == 'integerConstant':
+        #     self.process(self.currentToken)
+        # elif self.currentTokenType == 'stringConstant':
+        #     self.process(self.currentToken)
+        # elif self.currentTokenType == 'keyword':
+        #     self.process(self.currentToken)
+        # elif self.currentTokenType in ('identifier', 'class'):
+        #     if self.currentToken("(") or self.currentToken("."):
+        #         self.compileSubroutineCall()
+        #     elif self.currentToken == '[':
+        #         self.compileExpression()
+        #     else:
+        #         self.process(self.currentToken)
+        # elif self.currentToken == '(':
+        #     self.compileExpression()
+        # elif self.currentToken in self.unaryOp:
+        #     self.process(self.currentToken)
+        #     self.compileTerm()
+        # else:
+        #     self.outfile.write(f"Unexpected token: {self.currentToken} in file")
+        self.outfile.write("</term>\n")
 
     def compileSubroutineCall(self):
         """
@@ -351,6 +358,15 @@ class CompileEngine:
             self.process(self.currentToken)
         else:
             self.process(self.currentToken)
-            self.currentToken = self.T.getToken() # to make sure that the token updates 
+            self.currentToken = self.T.getToken()  # to make sure that the token updates
             self.process(self.currentToken)
         self.compileExpressionList()
+
+
+def main():
+    file = sys.argv[1]
+    compileEngine = CompileEngine(file)
+    compileEngine.compile()
+
+
+main()

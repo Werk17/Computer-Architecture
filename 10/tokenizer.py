@@ -54,8 +54,8 @@ class Tokenizer:
                     self.tokens.append(token)
 
             # tokens is now a list of all the individual tokens we want to read
-        self.token_index = 0
-        return self.tokens
+        # self.token_index = 0
+        # return self.tokens
 
     def removeComments(self, f):
         file = open(f, 'r')
